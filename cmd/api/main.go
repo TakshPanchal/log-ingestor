@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	_ "github.com/lib/pq"
+	"github.com/takshpanchal/log_ingestor/cmd/api/handlers"
 	"log"
 	"net/http"
 	"os"
@@ -10,32 +11,34 @@ import (
 
 func main() {
 	// Setup
-	port := ":3030"
+	port := ":3000"
 	mux := http.NewServeMux()
-	logger := log.New(os.Stdout, "", log.Ldate)
+	infoLogger := log.New(os.Stdout, "INFO: ", log.Ltime)
+	errLogger := log.New(os.Stderr, "ERROR: ", log.Ltime|log.Llongfile)
 	db, err := setupDB()
 
 	if err != nil {
-		logger.Fatalln(err)
+		errLogger.Fatalln(err)
 	}
 	db.Ping()
 
-	app := &application{
-		db:     db,
-		logger: logger,
+	app := &handlers.Application{
+		DB:        db,
+		ILogger:   infoLogger,
+		ErrLogger: errLogger,
 	}
 
-	mux.HandleFunc("/ingest", app.handleIngest)
+	mux.HandleFunc("/ingest", app.HandleIngest)
 
 	srv := &http.Server{
 		Addr:    port,
 		Handler: mux,
 	}
-	logger.Printf("Server is starting on %s port\n", port)
+	infoLogger.Printf("Server is starting on %s port\n", port)
 	err = srv.ListenAndServe()
 
 	if err != nil {
-		logger.Fatal(err)
+		errLogger.Fatal(err)
 	}
 }
 

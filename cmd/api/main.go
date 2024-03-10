@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	_ "github.com/lib/pq"
 	"github.com/takshpanchal/log_ingestor/cmd/api/handlers"
 	"log"
@@ -11,7 +12,9 @@ import (
 
 func main() {
 	// Setup
-	port := ":3000"
+	var port string
+	flag.StringVar(&port, "port", ":8080", "port running server")
+	flag.Parse()
 	mux := http.NewServeMux()
 	infoLogger := log.New(os.Stdout, "INFO: ", log.Ltime)
 	errLogger := log.New(os.Stderr, "ERROR: ", log.Ltime|log.Llongfile)

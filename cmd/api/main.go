@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"fmt"
+	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 	"github.com/takshpanchal/log_ingestor/cmd/api/handlers"
 	"log"
@@ -10,11 +12,17 @@ import (
 	"os"
 )
 
+var (
+	// DB
+	dbName, user, password, host, port string
+)
+
 func main() {
 	// Setup
 	var port string
 	flag.StringVar(&port, "port", ":8080", "port running server")
 	flag.Parse()
+	loadEnv()
 	mux := http.NewServeMux()
 	infoLogger := log.New(os.Stdout, "INFO: ", log.Ltime)
 	errLogger := log.New(os.Stderr, "ERROR: ", log.Ltime|log.Llongfile)
@@ -45,8 +53,16 @@ func main() {
 	}
 }
 
+func loadEnv() {
+	dbName = os.Getenv("DB_NAME")
+	user = os.Getenv("USER_NAME")
+	password = os.Getenv("DB_PASS")
+	host = os.Getenv("DB_HOST")
+	port = os.Getenv("DB_PORT")
+}
+
 func setupDB() (*sql.DB, error) {
-	connStr := "postgres://sjubjzfl:1LoC9R0p0H1M3CWHEdP811E80DFk5c18@tiny.db.elephantsql.com/sjubjzfl?sslmode=disable"
+	connStr := fmt.Sprintf("dbname=%s user=%s password=%s host=%s port=%s", dbName, user, password, host, port)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
